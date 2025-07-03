@@ -28,7 +28,6 @@ def parse(argv):
     parser.add_argument("--file", help="Исходный файл", required=True)
     parser.add_argument("--where", help="Фильтр значений вида: \"название_колонки=/</>значение\"")
     parser.add_argument("--aggregate", type=argument_with_equal, help="Агрегация числовых значений: \"название_колонки=min/max/avg\"")
-    parser.add_argument("--order-by", type=argument_with_equal, help="Сортировка значений: \"название_колонки=desc/asc\"")
 
     args = parser.parse_args(argv)
 
@@ -129,23 +128,6 @@ def aggregate_csv(name_column, aggregate_type, data):
 
     data = [[aggregate_type], [value]]
     return data
-
-
-def order_csv(name_column, sort_type, data):
-    filter_list = []
-    try:
-        for row in data:
-            if row[name_column] == sort_type:
-                filter_list.append(row)
-    except KeyError:
-        print(f"Заголовка {name_column} нет в файле")
-        exit()
-
-    
-    if not filter_list:
-        print("Нет такого значения в этом столбце")
-        exit()
-    return filter_list
 
 
 if __name__ == "__main__":
