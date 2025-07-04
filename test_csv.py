@@ -1,6 +1,6 @@
 import pytest
-from .csv_console import parse, argument_with_equal, dict_to_list, \
-    filter_csv, aggregate_csv, order_csv, processing
+from csv_console import parse, argument_with_equal, dict_to_list, \
+    filter_csv, aggregate_csv, order_csv
 
 
 @pytest.mark.parametrize("parse_args, expected_result", [
@@ -55,7 +55,14 @@ def test_wrong_argument_with_equal(capsys, args):
 
 def test_file():
     assert parse(['--file', 'products.csv']) == None
-    assert parse(['--file', 'csv.csv']) == None
+    assert parse(['--file', 'csv.csv']) == 1
+
+
+def test_dict_to_list(data_fill, source_dict):
+    assert dict_to_list(data_fill) == source_dict
+    with pytest.raises(AttributeError):
+        dict_to_list([1, 2])
+        dict_to_list(['a', 'b'])
 
 
 @pytest.mark.parametrize("args, expected_result", [
@@ -92,6 +99,25 @@ def test_aggregate(name_column, aggregate_type, data_fill, expected_result, caps
     try:
         expected_result = aggregate_csv(name_column, aggregate_type, data_fill)
         assert aggregate_csv(name_column, aggregate_type, data_fill) == expected_result
+    except SystemExit:
+        out, err = capsys.readouterr()
+        assert out == expected_result
+
+
+@pytest.mark.parametrize("name_column, order_type, expected_result", [
+    ('price', 'desc', None),
+    ('price', 'asc', None),
+    ('brand', 'asc', None),
+    ('name', 'desc', None),
+    ('p', 'asc', "Заголовка p нет в файле\n"),
+    ('price', 'min', "Неправильно указан параметр сортировки\n"),
+    ('name', 'max', "Неправильно указан параметр сортировки\n"),
+    ('p', 'max', "Заголовка p нет в файле\n"),
+])
+def test_order(name_column, order_type, data_fill, expected_result, capsys):
+    try:
+        expected_result = order_csv(name_column, order_type, data_fill)
+        assert order_csv(name_column, order_type, data_fill) == expected_result
     except SystemExit:
         out, err = capsys.readouterr()
         assert out == expected_result
