@@ -39,9 +39,6 @@ def parse(argv):
         print("Файл или папка не найдены")
         return 1
     
-    processing(args)
-
-def processing(args):
     data = []
     with open(args.file, 'r', newline='') as csvfile:
         reader = csv.DictReader(csvfile)
@@ -55,10 +52,6 @@ def processing(args):
             data.append(row)
         if args.where:
             data = filter_csv(args.where, data)
-
-        if args.order_by:
-            name_column, sort_type = args.order_by.split("=")
-            data = order_csv(name_column, sort_type, data)
     
         if args.aggregate:
             name_column, aggregate_type = args.aggregate.split("=")
