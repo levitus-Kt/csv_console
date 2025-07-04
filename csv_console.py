@@ -28,6 +28,7 @@ def parse(argv):
     parser.add_argument("--file", help="Исходный файл", required=True)
     parser.add_argument("--where", help="Фильтр значений вида: \"название_колонки=/</>значение\"")
     parser.add_argument("--aggregate", type=argument_with_equal, help="Агрегация числовых значений: \"название_колонки=min/max/avg\"")
+    parser.add_argument("--order-by", type=argument_with_equal, help="Сортировка значений: \"название_колонки=desc/asc\"")
 
     args = parser.parse_args(argv)
 
@@ -39,6 +40,7 @@ def parse(argv):
         print("Файл или папка не найдены")
         return 1
     
+
     data = []
     with open(args.file, 'r', newline='') as csvfile:
         reader = csv.DictReader(csvfile)
@@ -50,8 +52,13 @@ def parse(argv):
 
         for row in reader:
             data.append(row)
+
         if args.where:
             data = filter_csv(args.where, data)
+
+        if args.order_by:
+            name_column, order_type = args.order_by.split("=")
+            data = order_csv(name_column, order_type, data)
     
         if args.aggregate:
             name_column, aggregate_type = args.aggregate.split("=")
@@ -121,6 +128,32 @@ def aggregate_csv(name_column, aggregate_type, data):
 
     data = [[aggregate_type], [value]]
     return data
+
+
+def order_csv(name_column, order_type, data):
+    try:
+        values_list = list(map(lambda item: item[name_column], data))
+    except KeyError:
+        print(f"Заголовка {name_column} нет в файле")
+        exit()
+
+    try:
+        values_list = list(map(float, values_list))
+    except ValueError:
+        pass
+        
+    dict1 = {i: val for i, val in enumerate(values_list)}
+    if order_type == "asc":
+        dict1 = sorted(dict1.items(), key=lambda item: item[1])
+    elif order_type == "desc":
+        dict1 = sorted(dict1.items(), key=lambda item: item[1], reverse=True)
+    else:
+        print("Неправильно указан параметр сортировки")
+        exit()
+
+    result = list(map(lambda item: data[item[0]], dict1))
+
+    return result
 
 
 if __name__ == "__main__":
